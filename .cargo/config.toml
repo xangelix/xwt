@@ -1,6 +1,6 @@
 [target.'cfg(all())']
 rustflags = [
-  "-Dunsafe_code",
+  # "-Dunsafe_code",
   "-Wclippy::all",
   "-Wclippy::cargo",
   "-Wmissing_docs",

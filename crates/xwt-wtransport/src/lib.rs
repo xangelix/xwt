@@ -76,6 +76,48 @@ impl xwt_core::session::stream::RecvSpec for Connection {
     type RecvStream = RecvStream;
 }
 
+impl tokio::io::AsyncWrite for SendStream {
+    fn poll_write(
+        self: std::pin::Pin<&mut Self>,
+        cx: &mut std::task::Context<'_>,
+        buf: &[u8],
+    ) -> std::task::Poll<Result<usize, std::io::Error>> {
+        let inner_pin: std::pin::Pin<&mut wtransport::SendStream> =
+            unsafe { self.map_unchecked_mut(|s| &mut s.0) };
+        inner_pin.poll_write(cx, buf)
+    }
+
+    fn poll_flush(
+        self: std::pin::Pin<&mut Self>,
+        cx: &mut std::task::Context<'_>,
+    ) -> std::task::Poll<Result<(), std::io::Error>> {
+        let inner_pin: std::pin::Pin<&mut wtransport::SendStream> =
+            unsafe { self.map_unchecked_mut(|s| &mut s.0) };
+        inner_pin.poll_flush(cx)
+    }
+
+    fn poll_shutdown(
+        self: std::pin::Pin<&mut Self>,
+        cx: &mut std::task::Context<'_>,
+    ) -> std::task::Poll<Result<(), std::io::Error>> {
+        let inner_pin: std::pin::Pin<&mut wtransport::SendStream> =
+            unsafe { self.map_unchecked_mut(|s| &mut s.0) };
+        inner_pin.poll_shutdown(cx)
+    }
+}
+
+impl tokio::io::AsyncRead for RecvStream {
+    fn poll_read(
+        self: std::pin::Pin<&mut Self>,
+        cx: &mut std::task::Context<'_>,
+        buf: &mut tokio::io::ReadBuf<'_>,
+    ) -> std::task::Poll<std::io::Result<()>> {
+        let inner_pin: std::pin::Pin<&mut wtransport::RecvStream> =
+            unsafe { self.map_unchecked_mut(|s| &mut s.0) };
+        inner_pin.poll_read(cx, buf)
+    }
+}
+
 /// Take a pair of stream ends and wrap into our newtypes.
 fn map_streams(
     streams: (wtransport::SendStream, wtransport::RecvStream),
